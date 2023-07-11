@@ -12,7 +12,7 @@ import { ICardSectionVideos } from '../../types'
 const inter = Inter({ subsets: ['latin'] })
 
 export async function getServerSideProps() {
-  const disneyVideos = getVideos()
+  const disneyVideos = await getVideos()
   console.log(disneyVideos);
   return { props: { disneyVideos } }
 }
