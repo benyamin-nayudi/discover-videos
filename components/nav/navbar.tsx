@@ -1,16 +1,16 @@
-import { FC, SyntheticEvent, useState } from 'react'
+import { FC, SyntheticEvent, useEffect, useState } from 'react'
 import { NextRouter, useRouter } from 'next/router'
 
 import styles from './navbar.module.css'
 import Link from 'next/link'
 import Image from 'next/image'
+import magic from '../../lib/magic-client'
 
-type NavbarProps = { userName: string }
+type NavbarProps = {}
 
-const Navbar: FC<NavbarProps> = (props): JSX.Element => {
-  const { userName } = props
-
+const Navbar: FC<NavbarProps> = (): JSX.Element => {
   const [showDropdown, setShowDropdown] = useState<boolean>(false)
+  const [userName, setUserName] = useState<string>('')
 
   const router = useRouter()
 
@@ -28,12 +28,40 @@ const Navbar: FC<NavbarProps> = (props): JSX.Element => {
     setShowDropdown(!showDropdown)
   }
 
+  const handleSignout = async (e: SyntheticEvent) => {
+    try {
+      const res = await magic?.user.logout()
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    const getUserMetadata = async () => {
+      try {
+        const metaData = await magic?.user.getMetadata()
+        if (metaData && metaData.email) {
+          setUserName(metaData.email)
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+    getUserMetadata()
+  }, [])
+
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
         <Link href="#" className={styles.logoLink}>
           <div className={styles.logoWrapper}>
-            <Image height={34} width={128} src="/static/netflix.svg" alt="logo" />
+            <Image
+              height={34}
+              width={128}
+              src="/static/netflix.svg"
+              alt="logo"
+            />
           </div>
         </Link>
 
@@ -49,12 +77,21 @@ const Navbar: FC<NavbarProps> = (props): JSX.Element => {
           <div>
             <button onClick={handleShowDropdown} className={styles.usernameBtn}>
               <p className={styles.username}>{userName}</p>
-              <Image height="24" width="24" src="/static/expand_more.svg" alt="expand more" />
+              <Image
+                height="24"
+                width="24"
+                src="/static/expand_more.svg"
+                alt="expand more"
+              />
             </button>
             {showDropdown && (
               <div className={styles.navDropdown}>
                 <div>
-                  <Link href="/login" className={styles.linkName}>
+                  <Link
+                    onClick={handleSignout}
+                    href="/login"
+                    className={styles.linkName}
+                  >
                     Sign Out
                   </Link>
                   <div className={styles.lineWrapper}></div>

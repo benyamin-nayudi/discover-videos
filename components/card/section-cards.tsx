@@ -1,5 +1,6 @@
+import Link from 'next/link'
 import { FC } from 'react'
-import { ICardSectionVideos } from '../../types'
+import { CardSectionVideos } from '../../types/types'
 import Card from './card'
 
 import styles from './section-cards.module.css'
@@ -9,7 +10,7 @@ import styles from './section-cards.module.css'
 export interface SectionCardProps {
   title: string
   size?: 'large' | 'medium' | 'small'
-  videos: ICardSectionVideos[]
+  videos: CardSectionVideos[]
 }
 
 const SectionCards: FC<SectionCardProps> = (props): JSX.Element => {
@@ -21,7 +22,9 @@ const SectionCards: FC<SectionCardProps> = (props): JSX.Element => {
       <div className={styles.cardWrapper}>
         {videos.map((video, index) => {
           return (
-            <Card id={index} imgUrl={video.imgUrl} size={size} key={index} />
+            <Link href={`/video/${video.id}`}>
+              <Card id={index} imgUrl={video.imgUrl} size={size} key={index} />
+            </Link>
           )
         })}
       </div>

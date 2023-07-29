@@ -1,67 +1,68 @@
-import videoData from '../data/videos.json'
-import { ICardSectionVideos } from '../types'
+import { CardSectionVideos } from '../types/types'
+import { FailedApiCall, SuccessApiCall } from './apiTypes'
+import videoTestData from '../data/videos.json'
 
-interface Thumbnail {
-  url: string
-  width: number
-  height: number
-}
-
-interface Snippet {
-  publishedAt: string
-  channelId: string
-  title: string
-  description: string
-  thumbnails: {
-    default: Thumbnail
-    medium: Thumbnail
-    high: Thumbnail
-  }
-  channelTitle: string
-  liveBroadcastContent: string
-  publishTime: string
-}
-
-interface VideoId {
-  kind: string
-  videoId: string
-}
-
-interface Item {
-  kind: string
-  etag: string
-  id: VideoId
-  snippet: Snippet
-}
-
-interface PageInfo {
-  totalResults: number
-  resultsPerPage: number
-}
-
-interface ResponseData {
-  kind: string
-  etag: string
-  nextPageToken: string
-  regionCode: string
-  pageInfo: PageInfo
-  items: Item[]
-}
-
-export const getVideos = async (): Promise<ICardSectionVideos[]> => {
+const fetchVideos = async (url: string) => {
   const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
+  const BASE_URL = 'youtube.googleapis.com/youtube/v3'
+  const apiUrl = `https://${BASE_URL}/${url}&maxResults=25&key=${YOUTUBE_API_KEY}`
 
-  const url = `https://youtube.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=disney%20trailer&key=${YOUTUBE_API_KEY}`
+  const response = await fetch(apiUrl)
+  const data = (await response.json()) as SuccessApiCall | FailedApiCall
+  return data
+}
 
-  const response = await fetch(url)
+export const getCommonVideos = async (url: string) => {
+  try {
+    const isDev = process.env.DEVELOPMENT
+    // console.log('=========', isDev)
+    const data = isDev
+      ? (videoTestData as unknown as SuccessApiCall)
+      : await fetchVideos(url)
 
-  const data: ResponseData = await response.json()
-
-  return data.items.map((item) => {
-    return {
-      id: item.id.videoId,
-      imgUrl: item.snippet.thumbnails.high.url,
-      title: item.snippet.title,
+      // console.log('data', data);
+    if ('error' in data) {
+      console.log('youtube api error', data.error)
+      return []
     }
-  })
+    console.log('isDev',isDev);
+
+
+
+    return data.items.map((item) => {
+      // console.log('item', item);
+      const snippet = item.snippet
+
+      return {
+        id: item.id?.videoId || item.id.channelId || item.etag,
+        imgUrl: snippet.thumbnails.high.url,
+        title: snippet.title,
+        description: snippet.description,
+        publishTime: snippet.publishedAt,
+        channelTitle: snippet.channelTitle,
+        statistics: item.statistics ? item.statistics : { viewCount: 0 },
+      }
+    })
+  } catch (error) {
+    console.error('something went wrong with video lib', error)
+    return []
+  }
+}
+
+export const getVideos = async (
+  searchQuery: string
+): Promise<CardSectionVideos[]> => {
+  const url = `search?part=snippet&maxResults=25&q=${searchQuery}&type=video`
+  return getCommonVideos(url)
+}
+
+export const getPopularVideos = () => {
+  const URL =
+    'videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&regionCode=US'
+  return getCommonVideos(URL)
+}
+
+export const getYoutubeVideoById = (id: string) => {
+  const URL = `videos?part=snippet%2CcontentDetails%2Cstatistics&id=${id}`
+  return getCommonVideos(URL)
 }
