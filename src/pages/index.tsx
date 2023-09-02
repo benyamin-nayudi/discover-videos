@@ -39,7 +39,8 @@ export default function Home({
   travelVideos,
   popularVideos,
 }: IHomeProps): JSX.Element {
-  // console.log(magic);
+
+
   return (
     <>
       <Head>

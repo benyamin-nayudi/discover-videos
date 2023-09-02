@@ -14,7 +14,7 @@ const fetchVideos = async (url: string) => {
 
 export const getCommonVideos = async (url: string) => {
   try {
-    const isDev = process.env.DEVELOPMENT
+    const isDev = process.env.DEVELOPMENT 
     // console.log('=========', isDev)
     const data = isDev
       ? (videoTestData as unknown as SuccessApiCall)

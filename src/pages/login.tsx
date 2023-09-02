@@ -8,6 +8,10 @@ import styles from '../styles/Login.module.css'
 
 type LoginProps = {}
 
+type LoginResponse = {
+  done: boolean
+}
+
 const Login: FC<LoginProps> = (props): JSX.Element => {
   const [userMsg, setUserMsg] = useState<string>('')
   const [email, setEmail] = useState<string>('')
@@ -17,19 +21,33 @@ const Login: FC<LoginProps> = (props): JSX.Element => {
 
   const handleLoginWithEmail = async () => {
     if (email) {
-      if (email === 'benyamin.naudi@gmail.com') {
-        try {
-          setIsLoading(true)
-          const didToken = await magic?.auth.loginWithMagicLink({ email })
-          if (didToken) {
+      try {
+        setIsLoading(true)
+        const didToken = await magic?.auth.loginWithMagicLink({ email })
+
+        if (didToken) {
+          const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${didToken}`,
+              'Content-Type': 'application/json',
+            },
+          })
+
+          const loggedInResponse: LoginResponse = await response.json()
+
+          if (loggedInResponse.done) {
+            console.log({ loggedInResponse })
             router.push('/')
+          } else {
+            console.log({ loggedInResponse })
+            // router.push('/')
+            setIsLoading(false)
+            setUserMsg('something went wrong loggin in')
           }
-        } catch (error) {
-          console.error('error', error)
-          setIsLoading(false)
         }
-      } else {
-        setUserMsg('something went wrong logging in')
+      } catch (error) {
+        console.error('error', error)
         setIsLoading(false)
       }
     } else {
@@ -48,14 +66,14 @@ const Login: FC<LoginProps> = (props): JSX.Element => {
   }
 
   useEffect(() => {
-    router.events.on("routeChangeComplete", handleComplete)
-    router.events.on("routeChangeError", handleComplete)
-    
+    router.events.on('routeChangeComplete', handleComplete)
+    router.events.on('routeChangeError', handleComplete)
+
     return () => {
       router.events.off('routeChangeComplete', handleComplete)
-      router.events.off("routeChangeError", handleComplete)
+      router.events.off('routeChangeError', handleComplete)
     }
-  } , [router])
+  }, [router])
 
   return (
     <div className={styles.container}>

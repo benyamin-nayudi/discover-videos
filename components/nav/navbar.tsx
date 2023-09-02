@@ -40,6 +40,8 @@ const Navbar: FC<NavbarProps> = (): JSX.Element => {
     const getUserMetadata = async () => {
       try {
         const metaData = await magic?.user.getMetadata()
+        const didToken = await magic?.user.getIdToken();
+        console.log({didToken});
         if (metaData && metaData.email) {
           setUserName(metaData.email)
         }
