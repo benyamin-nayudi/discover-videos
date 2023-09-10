@@ -74,7 +74,7 @@ const Video = ({ video }: InferGetStaticPropsType<typeof getStaticProps>) => {
         favourited,
       }),
     })
-    console.log(await response.json())
+    // console.log(await response.json())
   }
 
   const handleToggleDislike = async () => {

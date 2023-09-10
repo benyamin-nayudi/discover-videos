@@ -21,7 +21,7 @@ export default async function stats(req: NextApiRequest, res: NextApiResponse) {
       const userId = await verifyToken(token)
 
       if (userId && videoId) {
-        console.log(token);
+        // console.log(token);
         const findVideo = await findVideoIdByUser(token, userId, videoId)
 
         const doesStatsExist = findVideo?.length > 0

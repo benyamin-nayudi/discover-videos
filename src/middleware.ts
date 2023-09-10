@@ -10,10 +10,10 @@ export async function middleware(request: NextRequest) {
     const token = cookie.value
     const userId = await verifyToken(token)
 
-    console.log((token && userId) || pathname.includes('/api/login'))
-    console.log(!token && pathname !== '/login')
+    // console.log((token && userId) || pathname.includes('/api/login'))
+    // console.log(!token && pathname !== '/login')
     if ((token && userId) || pathname.includes('/api/login')) {
-      console.log('here')
+      // console.log('here')
       return NextResponse.next()
     }
   }

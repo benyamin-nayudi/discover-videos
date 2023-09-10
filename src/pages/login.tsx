@@ -24,7 +24,7 @@ const Login: FC<LoginProps> = (props): JSX.Element => {
       try {
         setIsLoading(true)
         const didToken = await magic?.auth.loginWithMagicLink({ email })
-        console.log(didToken);
+        // console.log(didToken);
         if (didToken) {
           const response = await fetch('/api/login', {
             method: 'POST',
