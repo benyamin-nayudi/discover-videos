@@ -16,7 +16,6 @@ const Banner: FC<BannerProps> = (props): JSX.Element => {
   const { title, videoId, subTitle, imgUrl } = props
 
   const handleOnPlay = (): void => {
-    console.log('handleOnPlay')
     router.push(`video/${videoId}`)
   }
   return (

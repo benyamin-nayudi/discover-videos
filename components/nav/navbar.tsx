@@ -5,6 +5,7 @@ import styles from './navbar.module.css'
 import Link from 'next/link'
 import Image from 'next/image'
 import magic from '../../lib/magic-client'
+import cookie from 'cookie'
 
 type NavbarProps = {}
 
@@ -21,7 +22,7 @@ const Navbar: FC<NavbarProps> = (): JSX.Element => {
 
   const handleOnClickMyList = (e: SyntheticEvent): void => {
     e.preventDefault()
-    router.push('/my-list')
+    router.push('/browse/my-list')
   }
 
   const handleShowDropdown = (e: SyntheticEvent): void => {
@@ -31,6 +32,7 @@ const Navbar: FC<NavbarProps> = (): JSX.Element => {
   const handleSignout = async (e: SyntheticEvent) => {
     try {
       const res = await magic?.user.logout()
+      // cookie.
     } catch (error) {
       console.log(error)
     }
@@ -40,8 +42,6 @@ const Navbar: FC<NavbarProps> = (): JSX.Element => {
     const getUserMetadata = async () => {
       try {
         const metaData = await magic?.user.getMetadata()
-        const didToken = await magic?.user.getIdToken();
-        console.log({didToken});
         if (metaData && metaData.email) {
           setUserName(metaData.email)
         }

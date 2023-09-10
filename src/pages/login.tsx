@@ -24,7 +24,7 @@ const Login: FC<LoginProps> = (props): JSX.Element => {
       try {
         setIsLoading(true)
         const didToken = await magic?.auth.loginWithMagicLink({ email })
-
+        console.log(didToken);
         if (didToken) {
           const response = await fetch('/api/login', {
             method: 'POST',
@@ -37,11 +37,8 @@ const Login: FC<LoginProps> = (props): JSX.Element => {
           const loggedInResponse: LoginResponse = await response.json()
 
           if (loggedInResponse.done) {
-            console.log({ loggedInResponse })
             router.push('/')
           } else {
-            console.log({ loggedInResponse })
-            // router.push('/')
             setIsLoading(false)
             setUserMsg('something went wrong loggin in')
           }

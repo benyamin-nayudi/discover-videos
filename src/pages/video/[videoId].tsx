@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { FC } from 'react'
+import { FC, useEffect, useState } from 'react'
 import type {
   InferGetStaticPropsType,
   GetStaticProps,
@@ -14,6 +14,8 @@ import Navbar from '../../../components/nav/navbar'
 import styles from '../../styles/Video.module.css'
 import { getYoutubeVideoById } from '../../../lib/videos'
 import { ParsedUrlQuery } from 'querystring'
+import DisLike from '../../../components/icons/dislike-icon'
+import Like from '../../../components/icons/like-icon'
 
 Modal.setAppElement('#__next')
 
@@ -29,13 +31,12 @@ export const getStaticProps: GetStaticProps<
 > = async (context) => {
   const videoId = context.params?.videoId
   const videoArray = await getYoutubeVideoById(videoId!)
-  // console.log(videoArray);
 
   return {
     props: {
       video: videoArray,
     },
-    revalidate: 10
+    revalidate: 10,
   }
 }
 
@@ -56,13 +57,72 @@ const Video = ({ video }: InferGetStaticPropsType<typeof getStaticProps>) => {
 
   const videoId = router.query.videoId
 
+  const [toggleLike, setToggleLike] = useState(false)
+  const [toggleDislike, setToggleDislike] = useState(true)
+
   const { title, publishTime, description, channelTitle, statistics } =
     video[0] || {}
+
+  const runRatingService = async (favourited: number) => {
+    const response = await fetch('/api/stats', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        videoId,
+        favourited,
+      }),
+    })
+    console.log(await response.json())
+  }
+
+  const handleToggleDislike = async () => {
+    const val = !toggleDislike
+    const favourited = val ? 0 : 1
+
+    setToggleDislike(val)
+    setToggleLike(toggleDislike)
+
+    const response = await runRatingService(favourited)
+  }
+
+  const handleToggleLike = async () => {
+    const val = !toggleLike
+    const favourited = val ? 1 : 0
+
+    setToggleLike(val)
+    setToggleDislike(!toggleDislike)
+
+    const response = await runRatingService(favourited)
+  }
+
+  useEffect(() => {
+    const ratingService = async () => {
+      const response = await fetch(`/api/stats?videoId=${videoId}`, {
+        method: 'GET',
+      })
+
+      const data = await response.json()
+      if (data.length) {
+        const favourited = data[0].favourited
+        if (favourited === 1) {
+          setToggleLike(true)
+          setToggleDislike(false)
+        } else if (favourited === 0) {
+          setToggleDislike(true)
+          setToggleLike(false)
+        }
+      }
+    }
+
+    const response = ratingService()
+  }, [])
 
   return (
     <>
       <div className={styles.container}>
-      <Navbar />
+        <Navbar />
         <Modal
           isOpen
           onRequestClose={() => router.back()}
@@ -78,6 +138,22 @@ const Video = ({ video }: InferGetStaticPropsType<typeof getStaticProps>) => {
             src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&origin=http://example.com`}
             data-frameborder="0"
           ></iframe>
+
+          <div className={styles.likeDislikeBtnWrapper}>
+            <div className={styles.likeBtnWrapper}>
+              <button onClick={handleToggleLike}>
+                <div className={styles.btnWrapper}>
+                  <Like fill="none" selected={toggleLike} />
+                </div>
+              </button>
+            </div>
+
+            <button onClick={handleToggleDislike}>
+              <div className={styles.btnWrapper}>
+                <DisLike fill="none" selected={toggleDislike} />
+              </div>
+            </button>
+          </div>
 
           <div className={styles.modalBody}>
             <div className={styles.modalBodyContent}>

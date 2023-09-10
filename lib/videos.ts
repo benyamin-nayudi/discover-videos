@@ -1,6 +1,7 @@
 import { CardSectionVideos } from '../types/types'
 import { FailedApiCall, SuccessApiCall } from './apiTypes'
 import videoTestData from '../data/videos.json'
+import { getMyListVideos, getWatchedVideos } from './db/hasura'
 
 const fetchVideos = async (url: string) => {
   const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
@@ -14,20 +15,18 @@ const fetchVideos = async (url: string) => {
 
 export const getCommonVideos = async (url: string) => {
   try {
-    const isDev = process.env.DEVELOPMENT 
+    const isDev = process.env.DEVELOPMENT
     // console.log('=========', isDev)
     const data = isDev
       ? (videoTestData as unknown as SuccessApiCall)
       : await fetchVideos(url)
 
-      // console.log('data', data);
+    // console.log('data', data);
     if ('error' in data) {
       console.log('youtube api error', data.error)
       return []
     }
-    console.log('isDev',isDev);
-
-
+    // console.log('isDev', isDev)
 
     return data.items.map((item) => {
       // console.log('item', item);
@@ -65,4 +64,29 @@ export const getPopularVideos = () => {
 export const getYoutubeVideoById = (id: string) => {
   const URL = `videos?part=snippet%2CcontentDetails%2Cstatistics&id=${id}`
   return getCommonVideos(URL)
+}
+
+export const getWatchItAgainVideos = async (userId: string, token: string) => {
+  if (token && userId) {
+    const videos = await getWatchedVideos(userId, token)
+    return videos?.map((video) => {
+      return {
+        id: video.videoId,
+        imgUrl: `https://i.ytimg.com/vi/${video.videoId}/maxresdefault.jpg`,
+      }
+    })
+  }
+}
+
+export const getMyList = async (userId: string, token: string) => {
+  if (token && userId) {
+    const videos = await getMyListVideos(userId, token)
+    console.log("haasura videos", videos);
+    return videos?.map((video) => {
+      return {
+        id: video.videoId,
+        imgUrl: `https://i.ytimg.com/vi/${video.videoId}/maxresdefault.jpg`,
+      }
+    })
+  }
 }

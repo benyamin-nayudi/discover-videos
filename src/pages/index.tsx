@@ -5,14 +5,40 @@ import Navbar from '../../components/nav/navbar'
 import SectionCards from '../../components/card/section-cards'
 import magic from '../../lib/magic-client'
 
-import { getPopularVideos, getVideos } from '../../lib/videos'
+import {
+  GetServerSideProps,
+  GetServerSidePropsContext,
+  PreviewData,
+} from 'next'
+
+import {
+  getPopularVideos,
+  getVideos,
+  getWatchItAgainVideos,
+} from '../../lib/videos'
 
 import styles from '../styles/Home.module.css'
 import { CardSectionVideos } from '../../types/types'
+import { verifyToken } from '../../lib/utils'
+import useRedirectUser from '../../utils/redirectUser'
+import { ParsedUrlQuery } from 'querystring'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export async function getServerSideProps() {
+export type ContextType = GetServerSidePropsContext<ParsedUrlQuery, PreviewData>
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { userId, token } = await useRedirectUser(context)
+
+  let watchItAgainVideos
+
+  if (userId && token) {
+    watchItAgainVideos = (await getWatchItAgainVideos(
+      userId,
+      token
+    )) as unknown as CardSectionVideos
+  }
+
   const disneyVideos = await getVideos('disney trailers')
 
   const productivityVideos = await getVideos('productivity')
@@ -22,7 +48,13 @@ export async function getServerSideProps() {
   const popularVideos = await getPopularVideos()
 
   return {
-    props: { disneyVideos, productivityVideos, travelVideos, popularVideos },
+    props: {
+      disneyVideos,
+      productivityVideos,
+      travelVideos,
+      popularVideos,
+      watchItAgainVideos : watchItAgainVideos || [],
+    },
   }
 }
 
@@ -31,6 +63,7 @@ interface IHomeProps {
   productivityVideos: CardSectionVideos[]
   travelVideos: CardSectionVideos[]
   popularVideos: CardSectionVideos[]
+  watchItAgainVideos: CardSectionVideos[]
 }
 
 export default function Home({
@@ -38,9 +71,8 @@ export default function Home({
   productivityVideos,
   travelVideos,
   popularVideos,
+  watchItAgainVideos,
 }: IHomeProps): JSX.Element {
-
-
   return (
     <>
       <Head>
@@ -60,6 +92,14 @@ export default function Home({
 
         <div className={styles.sectionWrapper}>
           <SectionCards title="Disney" videos={disneyVideos} size="large" />
+        </div>
+
+        <div className={styles.sectionWrapper}>
+          <SectionCards
+            title="Watch It Again"
+            videos={watchItAgainVideos}
+            size="small"
+          />
         </div>
 
         <div className={styles.sectionWrapper}>
